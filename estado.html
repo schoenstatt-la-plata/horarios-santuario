@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santuario de Schoenstatt – Estado</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: #0e0e4a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+  .card { background: #fff; border-radius: 24px; width: 100%; max-width: 400px; overflow: hidden; box-shadow: 0 12px 50px rgba(0,0,0,0.5); }
+  .header { background: #1a1a6e; padding: 36px 24px 30px; text-align: center; }
+  .header img { width: 72px; height: 72px; margin: 0 auto 16px; display: block; }
+  .header h1 { color: #f5c400; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .header p { color: rgba(245,196,0,0.6); font-size: 13px; font-style: italic; }
+  .status-area { padding: 32px 28px 24px; text-align: center; }
+  .estado-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 100px; font-size: 15px; font-weight: 600; font-family: Arial, sans-serif; letter-spacing: 0.5px; margin-bottom: 20px; }
+  .estado-badge.abierto { background: #eaf7ed; color: #1a6e2e; border: 1.5px solid #a3d9af; }
+  .estado-badge.cerrado { background: #f7eaea; color: #6e1a1a; border: 1.5px solid #d9a3a3; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot.verde { background: #2ecc71; animation: pulse 2s ease-in-out infinite; }
+  .dot.rojo { background: #c0392b; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.85);} }
+  .hora-cierre { font-size: 52px; font-weight: 700; color: #1a1a6e; letter-spacing: -1px; margin-bottom: 6px; font-family: Arial, sans-serif; }
+  .hora-label { font-size: 14px; color: #999; margin-bottom: 4px; font-style: italic; }
+  .cerrado-msg { font-size: 15px; color: #888; line-height: 1.7; margin-bottom: 4px; }
+  .divider { height: 1px; background: #f0f0f0; margin: 0 28px 20px; }
+
+  /* Schedule semanal */
+  .schedule-section { padding: 0 28px 24px; }
+  .schedule-titulo { font-size: 12px; font-weight: 700; color: #1a1a6e; font-family: Arial, sans-serif; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .dia-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .dia-row:last-child { margin-bottom: 0; }
+  .dia-nombre { font-size: 12px; font-weight: 700; color: #1a1a6e; font-family: Arial, sans-serif; min-width: 34px; padding-top: 4px; }
+  .dia-nombre.hoy { color: #f5c400; background: #1a1a6e; border-radius: 6px; padding: 2px 6px; font-size: 11px; margin-top: 2px; }
+  .bloques { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+  .bloque-pill { background: #eaf7ed; color: #1a6e2e; border: 1px solid #a3d9af; border-radius: 100px; font-size: 11px; font-family: Arial, sans-serif; padding: 3px 9px; font-weight: 600; }
+  .sin-turno { font-size: 12px; color: #ddd; font-family: Arial, sans-serif; font-style: italic; padding-top: 4px; }
+
+  .footer-info { font-size: 12px; color: #aaa; text-align: center; line-height: 1.8; font-family: Arial, sans-serif; padding: 0 28px 4px; }
+  .footer-info a { color: #f5c400; text-decoration: none; }
+  .actualizado { font-size: 11px; color: #ccc; text-align: center; font-family: Arial, sans-serif; padding-bottom: 20px; margin-top: 4px; }
+  .loading { font-size: 14px; color: #bbb; padding: 20px 0; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <img src="logo.png" alt="Logo Schoenstatt" onerror="this.style.display='none'">
+    <h1>Santuario de Schoenstatt</h1>
+    <p>La Plata</p>
+  </div>
+
+  <div class="status-area" id="status-area">
+    <p class="loading">Consultando estado...</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="schedule-section" id="schedule-section" style="display:none">
+    <p class="schedule-titulo">Horarios semanales</p>
+    <div id="schedule-dias"></div>
+  </div>
+
+  <div class="divider" id="div2" style="display:none"></div>
+
+  <div style="padding: 0 28px 4px;">
+    <p class="footer-info">Movimiento de Schoenstatt · La Plata<br><a href="#">Instagram</a></p>
+  </div>
+  <p class="actualizado" id="actualizado"></p>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzwvVIpahkZxtFAKpMVUv07H3p1LAd2lrPUhCdoFmO_G_5TpkVQClpqu-ZiKK4AiSOy/exec';
+const DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function horaActual() {
+  return new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function getLunesDeHoy() {
+  const hoy = new Date();
+  const dia = hoy.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
+  hoy.setDate(hoy.getDate() + diff);
+  const y = hoy.getFullYear();
+  const m = String(hoy.getMonth()+1).padStart(2,'0');
+  const d = String(hoy.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+d;
+}
+
+function renderAbierto(horaCierre) {
+  return `<div class="estado-badge abierto"><div class="dot verde"></div>Abierto ahora, te esperamos</div>
+    <div class="hora-cierre">${horaCierre} hs.</div>
+    <p class="hora-label">hora estimada de cierre</p>`;
+}
+
+function renderCerrado() {
+  return `<div class="estado-badge cerrado"><div class="dot rojo"></div>Cerrado</div>
+    <p class="cerrado-msg">El santuario no tiene<br>custodios presentes en este momento.</p>`;
+}
+
+function agruparBloques(franjas) {
+  if (!franjas || franjas.length === 0) return [];
+  const sorted = [...franjas].sort();
+  const bloques = [];
+  let inicio = sorted[0], anterior = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    const [hA, mA] = anterior.split(':').map(Number);
+    const [hF, mF] = sorted[i].split(':').map(Number);
+    if ((hF * 60 + mF) - (hA * 60 + mA) === 15) {
+      anterior = sorted[i];
+    } else {
+      bloques.push(inicio + ' – ' + anterior);
+      inicio = sorted[i]; anterior = sorted[i];
+    }
+  }
+  bloques.push(inicio + ' – ' + anterior);
+  return bloques;
+}
+
+function renderScheduleSemanal(grilla) {
+  const sec = document.getElementById('schedule-section');
+  const cont = document.getElementById('schedule-dias');
+  const div2 = document.getElementById('div2');
+  const diaHoy = new Date().getDay();
+
+  if (!grilla) { sec.style.display = 'none'; div2.style.display = 'none'; return; }
+
+  let hayAlgo = false;
+  cont.innerHTML = '';
+
+  for (let d = 0; d <= 6; d++) {
+    const franjas = Object.keys(grilla[d] || {}).filter(f => grilla[d][f]);
+    const bloques = agruparBloques(franjas);
+
+    const row = document.createElement('div');
+    row.className = 'dia-row';
+
+    const nombre = document.createElement('div');
+    nombre.className = 'dia-nombre' + (d === diaHoy ? ' hoy' : '');
+    nombre.textContent = DIAS_CORTO[d];
+    row.appendChild(nombre);
+
+    const bloquesDiv = document.createElement('div');
+    bloquesDiv.className = 'bloques';
+
+    if (bloques.length > 0) {
+      hayAlgo = true;
+      bloques.forEach(b => {
+        const pill = document.createElement('span');
+        pill.className = 'bloque-pill';
+        pill.textContent = b;
+        bloquesDiv.appendChild(pill);
+      });
+    } else {
+      const sin = document.createElement('span');
+      sin.className = 'sin-turno';
+      sin.textContent = 'sin turno';
+      bloquesDiv.appendChild(sin);
+    }
+
+    row.appendChild(bloquesDiv);
+    cont.appendChild(row);
+  }
+
+  sec.style.display = hayAlgo ? 'block' : 'none';
+  div2.style.display = hayAlgo ? 'block' : 'none';
+}
+
+function cargar() {
+  // Primero cargamos estado
+  window._cbEstado = function(data) {
+    const area = document.getElementById('status-area');
+    area.innerHTML = (data.abierto && data.horaCierre) ? renderAbierto(data.horaCierre) : renderCerrado();
+    document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
+  };
+  const s1 = document.createElement('script');
+  s1.src = API + '?action=estado&callback=_cbEstado&t=' + Date.now();
+  s1.onerror = () => {
+    document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
+  };
+  document.head.appendChild(s1);
+
+  // Luego cargamos schedule semanal
+  const lunes = getLunesDeHoy();
+  window._cbSchedule = function(data) {
+    if (data.ok) renderScheduleSemanal(data.grilla);
+  };
+  const s2 = document.createElement('script');
+  s2.src = API + '?action=getSchedule&semana=' + lunes + '&callback=_cbSchedule&t=' + (Date.now()+1);
+  document.head.appendChild(s2);
+}
+
+cargar();
+setInterval(cargar, 120000);
+</script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Santuario de Schoenstatt – Registro</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: #0e0e4a;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 360px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+  }
+
+  .header {
+    background: #1a1a6e;
+    padding: 32px 24px 28px;
+    text-align: center;
+  }
+
+  .header img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 14px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .header h1 {
+    color: #f5c400;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+
+  .header p {
+    color: rgba(245,196,0,0.65);
+    font-size: 13px;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+  }
+
+  .body {
+    padding: 28px 24px 32px;
+  }
+
+  .title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a6e;
+    margin-bottom: 6px;
+    font-family: 'Georgia', serif;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+  }
+
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .time-col {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .time-col span {
+    display: block;
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 6px;
+    font-family: Arial, sans-serif;
+  }
+
+  .sep {
+    font-size: 28px;
+    color: #ccc;
+    font-weight: 300;
+    margin-bottom: 23px;
+    align-self: center;
+  }
+
+  select {
+    width: 100%;
+    font-size: 26px;
+    font-weight: 600;
+    text-align: center;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 10px 6px;
+    background: #f8f8ff;
+    color: #1a1a6e;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: #1a1a6e;
+  }
+
+  .hint {
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 4px;
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 16px;
+    background: #1a1a6e;
+    color: #f5c400;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn:hover { background: #14145a; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { background: #ccc; color: #fff; cursor: default; }
+
+  .btn-sec {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    color: #888;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    margin-top: 12px;
+  }
+  .btn-sec:hover { border-color: #1a1a6e; color: #1a1a6e; }
+
+  /* Pantalla de éxito */
+  .ok-view { display: none; text-align: center; padding: 8px 0; }
+
+  .ok-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #f0f7e6;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ok-icon svg { width: 26px; height: 26px; }
+
+  .ok-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1a6e;
+    margin-bottom: 8px;
+    font-family: 'Georgia', serif;
+  }
+
+  .ok-msg {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* Error */
+  .error-msg {
+    background: #fff3f3;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+    color: #c00;
+    font-size: 13px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <!-- Reemplazá el src con la ruta real al logo -->
+    <img src="logo.png" alt="Logo Schoenstatt" onerror="this.style.display='none'">
+    <h1>Santuario de Schoenstatt</h1>
+    <p>La Plata</p>
+  </div>
+
+  <div class="body">
+
+    <!-- FORMULARIO -->
+    <div id="form-view">
+      <p class="title">Registrar presencia</p>
+      <p class="subtitle">Ingresá tu hora de salida estimada para que los peregrinos puedan saber que el santuario está abierto.</p>
+
+      <label>Hora de salida</label>
+      <div class="time-row">
+        <div class="time-col">
+          <select id="hora"></select>
+          <span>hora</span>
+        </div>
+        <div class="sep">:</div>
+        <div class="time-col">
+          <select id="minutos">
+            <option value="00">00</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="45">45</option>
+          </select>
+          <span>minutos</span>
+        </div>
+      </div>
+      <p class="hint">Podés modificar este horario si es necesario.</p>
+
+      <div class="error-msg" id="error-msg">Ocurrió un error. Intentá de nuevo.</div>
+
+      <button class="btn" id="btn-enviar" onclick="enviar()">Registrar presencia</button>
+    </div>
+
+    <!-- ÉXITO -->
+    <div class="ok-view" id="ok-view">
+      <div class="ok-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3a7d1e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <p class="ok-title">Presencia registrada</p>
+      <p class="ok-msg" id="ok-msg"></p>
+      <button class="btn-sec" onclick="modificar()">Modificar horario</button>
+      <a href="estado.html" style="display:block;width:100%;margin-top:10px;padding:13px;background:#1a1a6e;color:#f5c400;border-radius:12px;font-size:14px;font-family:Georgia,serif;font-weight:600;text-align:center;text-decoration:none;">Ver publicación</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzwvVIpahkZxtFAKpMVUv07H3p1LAd2lrPUhCdoFmO_G_5TpkVQClpqu-ZiKK4AiSOy/exec';
+
+// Poblar horas
+const horaEl = document.getElementById('hora');
+for (let h = 6; h <= 22; h++) {
+  const op = document.createElement('option');
+  op.value = String(h).padStart(2, '0');
+  op.textContent = String(h).padStart(2, '0');
+  horaEl.appendChild(op);
+}
+
+// Preseleccionar hora actual + 1h redondeada al cuarto
+const now = new Date();
+const plus1 = new Date(now.getTime() + 60 * 60 * 1000);
+const ph = plus1.getHours();
+const pm = plus1.getMinutes();
+const pmR = pm < 15 ? '00' : pm < 30 ? '15' : pm < 45 ? '30' : '45';
+const phF = pm >= 45 ? Math.min(ph + 1, 22) : ph;
+horaEl.value = String(Math.min(phF, 22)).padStart(2, '0');
+document.getElementById('minutos').value = pmR;
+
+function mostrarError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg || 'Ocurrió un error. Intentá de nuevo.';
+  el.style.display = 'block';
+}
+
+function ocultarError() {
+  document.getElementById('error-msg').style.display = 'none';
+}
+
+function enviar() {
+  ocultarError();
+  const h = document.getElementById('hora').value;
+  const m = document.getElementById('minutos').value;
+  const horaSalida = h + ':' + m;
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Registrando...';
+
+  const url = API + '?action=registrar&hora_salida=' + encodeURIComponent(horaSalida);
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('ok-msg').textContent =
+          'El santuario figura como abierto hasta las ' + horaSalida + ' hs. ¡Gracias por tu servicio!';
+        document.getElementById('form-view').style.display = 'none';
+        document.getElementById('ok-view').style.display = 'block';
+      } else {
+        mostrarError(data.error || 'No se pudo registrar.');
+      }
+    })
+    .catch(() => mostrarError('Sin conexión. Verificá tu internet.'))
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = 'Registrar presencia';
+    });
+}
+
+function modificar() {
+  document.getElementById('ok-view').style.display = 'none';
+  document.getElementById('form-view').style.display = 'block';
+}
+</script>
+</body>
+</html>
