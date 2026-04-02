@@ -173,7 +173,6 @@ function cargar() {
       const area = document.getElementById('status-area');
       area.innerHTML = (data.abierto && data.horaCierre) ? renderAbierto(data.horaCierre) : renderCerrado();
       document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
-      if (data.schedule) renderScheduleSemanal({ [new Date().getDay()]: {} });
     })
     .catch(() => {
       document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
