@@ -24,8 +24,6 @@
   .hora-label { font-size: 14px; color: #999; margin-bottom: 4px; font-style: italic; }
   .cerrado-msg { font-size: 15px; color: #888; line-height: 1.7; margin-bottom: 4px; }
   .divider { height: 1px; background: #f0f0f0; margin: 0 28px 20px; }
-
-  /* Schedule semanal */
   .schedule-section { padding: 0 28px 24px; }
   .schedule-titulo { font-size: 12px; font-weight: 700; color: #1a1a6e; font-family: Arial, sans-serif; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
   .dia-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
@@ -35,7 +33,6 @@
   .bloques { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
   .bloque-pill { background: #eaf7ed; color: #1a6e2e; border: 1px solid #a3d9af; border-radius: 100px; font-size: 11px; font-family: Arial, sans-serif; padding: 3px 9px; font-weight: 600; }
   .sin-turno { font-size: 12px; color: #ddd; font-family: Arial, sans-serif; font-style: italic; padding-top: 4px; }
-
   .footer-info { font-size: 12px; color: #aaa; text-align: center; line-height: 1.8; font-family: Arial, sans-serif; padding: 0 28px 4px; }
   .footer-info a { color: #f5c400; text-decoration: none; }
   .actualizado { font-size: 11px; color: #ccc; text-align: center; font-family: Arial, sans-serif; padding-bottom: 20px; margin-top: 4px; }
@@ -70,7 +67,7 @@
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzwvVIpahkZxtFAKpMVUv07H3p1LAd2lrPUhCdoFmO_G_5TpkVQClpqu-ZiKK4AiSOy/exec';
+const API = 'https://santuario-api.vercel.app';
 const DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
 function horaActual() {
@@ -168,27 +165,26 @@ function renderScheduleSemanal(grilla) {
 }
 
 function cargar() {
-  // Primero cargamos estado
-  window._cbEstado = function(data) {
-    const area = document.getElementById('status-area');
-    area.innerHTML = (data.abierto && data.horaCierre) ? renderAbierto(data.horaCierre) : renderCerrado();
-    document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
-  };
-  const s1 = document.createElement('script');
-  s1.src = API + '?action=estado&callback=_cbEstado&t=' + Date.now();
-  s1.onerror = () => {
-    document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
-  };
-  document.head.appendChild(s1);
-
-  // Luego cargamos schedule semanal
   const lunes = getLunesDeHoy();
-  window._cbSchedule = function(data) {
-    if (data.ok) renderScheduleSemanal(data.grilla);
-  };
-  const s2 = document.createElement('script');
-  s2.src = API + '?action=getSchedule&semana=' + lunes + '&callback=_cbSchedule&t=' + (Date.now()+1);
-  document.head.appendChild(s2);
+
+  fetch(API + '?action=estado&t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      const area = document.getElementById('status-area');
+      area.innerHTML = (data.abierto && data.horaCierre) ? renderAbierto(data.horaCierre) : renderCerrado();
+      document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
+      if (data.schedule) renderScheduleSemanal({ [new Date().getDay()]: {} });
+    })
+    .catch(() => {
+      document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
+    });
+
+  fetch(API + '?action=getSchedule&semana=' + lunes + '&t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) renderScheduleSemanal(data.grilla);
+    })
+    .catch(() => {});
 }
 
 cargar();
