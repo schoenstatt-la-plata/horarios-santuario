@@ -2,222 +2,41 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Santuario de Schoenstatt – Registro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Santuario de Schoenstatt – Estado</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Georgia', serif;
-    background: #0e0e4a;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .card {
-    background: #fff;
-    border-radius: 20px;
-    width: 100%;
-    max-width: 360px;
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
-  }
-
-  .header {
-    background: #1a1a6e;
-    padding: 32px 24px 28px;
-    text-align: center;
-  }
-
-  .header img {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 14px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .header h1 {
-    color: #f5c400;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    margin-bottom: 4px;
-  }
-
-  .header p {
-    color: rgba(245,196,0,0.65);
-    font-size: 13px;
-    font-family: 'Georgia', serif;
-    font-style: italic;
-  }
-
-  .body {
-    padding: 28px 24px 32px;
-  }
-
-  .title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1a1a6e;
-    margin-bottom: 6px;
-    font-family: 'Georgia', serif;
-  }
-
-  .subtitle {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 28px;
-    line-height: 1.5;
-  }
-
-  label {
-    display: block;
-    font-size: 12px;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 10px;
-    font-family: Arial, sans-serif;
-  }
-
-  .time-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .time-col {
-    flex: 1;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .time-col span {
-    display: block;
-    font-size: 11px;
-    color: #aaa;
-    margin-top: 6px;
-    font-family: Arial, sans-serif;
-  }
-
-  .sep {
-    font-size: 28px;
-    color: #ccc;
-    font-weight: 300;
-    margin-bottom: 23px;
-    align-self: center;
-  }
-
-  select {
-    width: 100%;
-    font-size: 26px;
-    font-weight: 600;
-    text-align: center;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 10px 6px;
-    background: #f8f8ff;
-    color: #1a1a6e;
-    appearance: none;
-    -webkit-appearance: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
-  }
-
-  select:focus {
-    outline: none;
-    border-color: #1a1a6e;
-  }
-
-  .hint {
-    font-size: 12px;
-    color: #bbb;
-    margin-top: 4px;
-    margin-bottom: 28px;
-    font-style: italic;
-  }
-
-  .btn {
-    width: 100%;
-    padding: 16px;
-    background: #1a1a6e;
-    color: #f5c400;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    font-family: 'Georgia', serif;
-    cursor: pointer;
-    letter-spacing: 0.3px;
-    transition: background 0.2s, transform 0.1s;
-  }
-
-  .btn:hover { background: #14145a; }
-  .btn:active { transform: scale(0.98); }
-  .btn:disabled { background: #ccc; color: #fff; cursor: default; }
-
-  .btn-sec {
-    width: 100%;
-    padding: 13px;
-    background: transparent;
-    color: #888;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 12px;
-    font-size: 14px;
-    font-family: 'Georgia', serif;
-    cursor: pointer;
-    transition: border-color 0.2s;
-    margin-top: 12px;
-  }
-  .btn-sec:hover { border-color: #1a1a6e; color: #1a1a6e; }
-
-  .ok-view { display: none; text-align: center; padding: 8px 0; }
-
-  .ok-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #f0f7e6;
-    margin: 0 auto 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .ok-icon svg { width: 26px; height: 26px; }
-
-  .ok-title {
-    font-size: 17px;
-    font-weight: 600;
-    color: #1a1a6e;
-    margin-bottom: 8px;
-    font-family: 'Georgia', serif;
-  }
-
-  .ok-msg {
-    font-size: 13px;
-    color: #666;
-    line-height: 1.6;
-    margin-bottom: 24px;
-  }
-
-  .error-msg {
-    background: #fff3f3;
-    border: 1px solid #ffcccc;
-    border-radius: 8px;
-    color: #c00;
-    font-size: 13px;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    display: none;
-  }
+  body { font-family: 'Georgia', serif; background: #0e0e4a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+  .card { background: #fff; border-radius: 24px; width: 100%; max-width: 400px; overflow: hidden; box-shadow: 0 12px 50px rgba(0,0,0,0.5); }
+  .header { background: #1a1a6e; padding: 36px 24px 30px; text-align: center; }
+  .header img { width: 72px; height: 72px; margin: 0 auto 16px; display: block; }
+  .header h1 { color: #f5c400; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .header p { color: rgba(245,196,0,0.6); font-size: 13px; font-style: italic; }
+  .status-area { padding: 32px 28px 24px; text-align: center; }
+  .estado-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 100px; font-size: 15px; font-weight: 600; font-family: Arial, sans-serif; letter-spacing: 0.5px; margin-bottom: 20px; }
+  .estado-badge.abierto { background: #eaf7ed; color: #1a6e2e; border: 1.5px solid #a3d9af; }
+  .estado-badge.cerrado { background: #f7eaea; color: #6e1a1a; border: 1.5px solid #d9a3a3; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot.verde { background: #2ecc71; animation: pulse 2s ease-in-out infinite; }
+  .dot.rojo { background: #c0392b; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.85);} }
+  .hora-cierre { font-size: 52px; font-weight: 700; color: #1a1a6e; letter-spacing: -1px; margin-bottom: 6px; font-family: Arial, sans-serif; }
+  .hora-label { font-size: 14px; color: #999; margin-bottom: 4px; font-style: italic; }
+  .cerrado-msg { font-size: 15px; color: #888; line-height: 1.7; margin-bottom: 4px; }
+  .divider { height: 1px; background: #f0f0f0; margin: 0 28px 20px; }
+  .schedule-section { padding: 0 28px 24px; }
+  .schedule-titulo { font-size: 12px; font-weight: 700; color: #1a1a6e; font-family: Arial, sans-serif; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .dia-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .dia-row:last-child { margin-bottom: 0; }
+  .dia-nombre { font-size: 12px; font-weight: 700; color: #1a1a6e; font-family: Arial, sans-serif; min-width: 34px; padding-top: 4px; }
+  .dia-nombre.hoy { color: #f5c400; background: #1a1a6e; border-radius: 6px; padding: 2px 6px; font-size: 11px; margin-top: 2px; }
+  .bloques { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+  .bloque-pill { background: #eaf7ed; color: #1a6e2e; border: 1px solid #a3d9af; border-radius: 100px; font-size: 11px; font-family: Arial, sans-serif; padding: 3px 9px; font-weight: 600; }
+  .sin-turno { font-size: 12px; color: #ddd; font-family: Arial, sans-serif; font-style: italic; padding-top: 4px; }
+  .footer-info { font-size: 12px; color: #aaa; text-align: center; line-height: 1.8; font-family: Arial, sans-serif; padding: 0 28px 4px; }
+  .footer-info a { color: #f5c400; text-decoration: none; }
+  .actualizado { font-size: 11px; color: #ccc; text-align: center; font-family: Arial, sans-serif; padding-bottom: 20px; margin-top: 4px; }
+  .loading { font-size: 14px; color: #bbb; padding: 20px 0; font-style: italic; }
 </style>
 </head>
 <body>
@@ -228,113 +47,148 @@
     <p>La Plata</p>
   </div>
 
-  <div class="body">
-
-    <div id="form-view">
-      <p class="title">Registrar presencia</p>
-      <p class="subtitle">Ingresá tu hora de salida estimada para que los peregrinos puedan saber que el santuario está abierto.</p>
-
-      <label>Hora de salida</label>
-      <div class="time-row">
-        <div class="time-col">
-          <select id="hora"></select>
-          <span>hora</span>
-        </div>
-        <div class="sep">:</div>
-        <div class="time-col">
-          <select id="minutos">
-            <option value="00">00</option>
-            <option value="15">15</option>
-            <option value="30">30</option>
-            <option value="45">45</option>
-          </select>
-          <span>minutos</span>
-        </div>
-      </div>
-      <p class="hint">Podés modificar este horario si es necesario.</p>
-
-      <div class="error-msg" id="error-msg">Ocurrió un error. Intentá de nuevo.</div>
-
-      <button class="btn" id="btn-enviar" onclick="enviar()">Registrar presencia</button>
-    </div>
-
-    <div class="ok-view" id="ok-view">
-      <div class="ok-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#3a7d1e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-      </div>
-      <p class="ok-title">Presencia registrada</p>
-      <p class="ok-msg" id="ok-msg"></p>
-      <button class="btn-sec" onclick="modificar()">Modificar horario</button>
-      <a href="estado.html" style="display:block;width:100%;margin-top:10px;padding:13px;background:#1a1a6e;color:#f5c400;border-radius:12px;font-size:14px;font-family:Georgia,serif;font-weight:600;text-align:center;text-decoration:none;">Ver publicación</a>
-    </div>
-
+  <div class="status-area" id="status-area">
+    <p class="loading">Consultando estado...</p>
   </div>
+
+  <div class="divider"></div>
+
+  <div class="schedule-section" id="schedule-section" style="display:none">
+    <p class="schedule-titulo">Horarios semanales</p>
+    <div id="schedule-dias"></div>
+  </div>
+
+  <div class="divider" id="div2" style="display:none"></div>
+
+  <div style="padding: 0 28px 4px;">
+    <p class="footer-info">Movimiento Apostólico de Schoenstatt<br><a href="#">La Plata</a></p>
+  </div>
+  <p class="actualizado" id="actualizado"></p>
 </div>
 
 <script>
 const API = 'https://santuario-api.vercel.app';
+const DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
-const horaEl = document.getElementById('hora');
-for (let h = 6; h <= 22; h++) {
-  const op = document.createElement('option');
-  op.value = String(h).padStart(2, '0');
-  op.textContent = String(h).padStart(2, '0');
-  horaEl.appendChild(op);
+function horaActual() {
+  return new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 }
 
-const now = new Date();
-const plus1 = new Date(now.getTime() + 60 * 60 * 1000);
-const ph = plus1.getHours();
-const pm = plus1.getMinutes();
-const pmR = pm < 15 ? '00' : pm < 30 ? '15' : pm < 45 ? '30' : '45';
-const phF = pm >= 45 ? Math.min(ph + 1, 22) : ph;
-horaEl.value = String(Math.min(phF, 22)).padStart(2, '0');
-document.getElementById('minutos').value = pmR;
-
-function mostrarError(msg) {
-  const el = document.getElementById('error-msg');
-  el.textContent = msg || 'Ocurrió un error. Intentá de nuevo.';
-  el.style.display = 'block';
+function getLunesDeHoy() {
+  const hoy = new Date();
+  const dia = hoy.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
+  hoy.setDate(hoy.getDate() + diff);
+  const y = hoy.getFullYear();
+  const m = String(hoy.getMonth()+1).padStart(2,'0');
+  const d = String(hoy.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+d;
 }
 
-function ocultarError() {
-  document.getElementById('error-msg').style.display = 'none';
+function renderAbierto(horaCierre) {
+  return `<div class="estado-badge abierto"><div class="dot verde"></div>Abierto ahora, la Mater te espera</div>
+    <div class="hora-cierre">${horaCierre} hs.</div>
+    <p class="hora-label">hora estimada de cierre</p>`;
 }
 
-function enviar() {
-  ocultarError();
-  const h = document.getElementById('hora').value;
-  const m = document.getElementById('minutos').value;
-  const horaSalida = h + ':' + m;
-  const btn = document.getElementById('btn-enviar');
-  btn.disabled = true;
-  btn.textContent = 'Registrando...';
+function renderCerrado() {
+  return `<div class="estado-badge cerrado"><div class="dot rojo"></div>Cerrado</div>
+    <p class="cerrado-msg">El santuario no tiene<br>custodios presentes en este momento.</p>`;
+}
 
-  fetch(API + '?action=registrar&hora_salida=' + encodeURIComponent(horaSalida))
+function agruparBloques(franjas) {
+  if (!franjas || franjas.length === 0) return [];
+  const sorted = [...franjas].sort();
+  const bloques = [];
+  let inicio = sorted[0], anterior = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    const [hA, mA] = anterior.split(':').map(Number);
+    const [hF, mF] = sorted[i].split(':').map(Number);
+    if ((hF * 60 + mF) - (hA * 60 + mA) === 15) {
+      anterior = sorted[i];
+    } else {
+      bloques.push(inicio + ' – ' + anterior);
+      inicio = sorted[i]; anterior = sorted[i];
+    }
+  }
+  bloques.push(inicio + ' – ' + anterior);
+  return bloques;
+}
+
+function renderScheduleSemanal(grilla) {
+  const sec = document.getElementById('schedule-section');
+  const cont = document.getElementById('schedule-dias');
+  const div2 = document.getElementById('div2');
+  const diaHoy = new Date().getDay();
+
+  if (!grilla) { sec.style.display = 'none'; div2.style.display = 'none'; return; }
+
+  let hayAlgo = false;
+  cont.innerHTML = '';
+
+  for (let d = 0; d <= 6; d++) {
+    const franjas = Object.keys(grilla[d] || {}).filter(f => grilla[d][f]);
+    const bloques = agruparBloques(franjas);
+
+    const row = document.createElement('div');
+    row.className = 'dia-row';
+
+    const nombre = document.createElement('div');
+    nombre.className = 'dia-nombre' + (d === diaHoy ? ' hoy' : '');
+    nombre.textContent = DIAS_CORTO[d];
+    row.appendChild(nombre);
+
+    const bloquesDiv = document.createElement('div');
+    bloquesDiv.className = 'bloques';
+
+    if (bloques.length > 0) {
+      hayAlgo = true;
+      bloques.forEach(b => {
+        const pill = document.createElement('span');
+        pill.className = 'bloque-pill';
+        pill.textContent = b;
+        bloquesDiv.appendChild(pill);
+      });
+    } else {
+      const sin = document.createElement('span');
+      sin.className = 'sin-turno';
+      sin.textContent = 'sin turno';
+      bloquesDiv.appendChild(sin);
+    }
+
+    row.appendChild(bloquesDiv);
+    cont.appendChild(row);
+  }
+
+  sec.style.display = hayAlgo ? 'block' : 'none';
+  div2.style.display = hayAlgo ? 'block' : 'none';
+}
+
+function cargar() {
+  const lunes = getLunesDeHoy();
+
+  fetch(API + '?action=estado&t=' + Date.now())
     .then(r => r.json())
     .then(data => {
-      if (data.ok) {
-        document.getElementById('ok-msg').textContent =
-          'El santuario figura como abierto hasta las ' + horaSalida + ' hs. ¡Gracias por tu servicio!';
-        document.getElementById('form-view').style.display = 'none';
-        document.getElementById('ok-view').style.display = 'block';
-      } else {
-        mostrarError(data.error || 'No se pudo registrar.');
-      }
+      const area = document.getElementById('status-area');
+      area.innerHTML = (data.abierto && data.horaCierre) ? renderAbierto(data.horaCierre) : renderCerrado();
+      document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
+      if (data.schedule) renderScheduleSemanal({ [new Date().getDay()]: {} });
     })
-    .catch(() => mostrarError('Sin conexión. Verificá tu internet.'))
-    .finally(() => {
-      btn.disabled = false;
-      btn.textContent = 'Registrar presencia';
+    .catch(() => {
+      document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
     });
+
+  fetch(API + '?action=getSchedule&semana=' + lunes + '&t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) renderScheduleSemanal(data.grilla);
+    })
+    .catch(() => {});
 }
 
-function modificar() {
-  document.getElementById('ok-view').style.display = 'none';
-  document.getElementById('form-view').style.display = 'block';
-}
+cargar();
+setInterval(cargar, 120000);
 </script>
 </body>
 </html>
