@@ -178,7 +178,6 @@
   }
   .btn-sec:hover { border-color: #1a1a6e; color: #1a1a6e; }
 
-  /* Pantalla de éxito */
   .ok-view { display: none; text-align: center; padding: 8px 0; }
 
   .ok-icon {
@@ -209,7 +208,6 @@
     margin-bottom: 24px;
   }
 
-  /* Error */
   .error-msg {
     background: #fff3f3;
     border: 1px solid #ffcccc;
@@ -225,7 +223,6 @@
 <body>
 <div class="card">
   <div class="header">
-    <!-- Reemplazá el src con la ruta real al logo -->
     <img src="logo.png" alt="Logo Schoenstatt" onerror="this.style.display='none'">
     <h1>Santuario de Schoenstatt</h1>
     <p>La Plata</p>
@@ -233,7 +230,6 @@
 
   <div class="body">
 
-    <!-- FORMULARIO -->
     <div id="form-view">
       <p class="title">Registrar presencia</p>
       <p class="subtitle">Ingresá tu hora de salida estimada para que los peregrinos puedan saber que el santuario está abierto.</p>
@@ -262,7 +258,6 @@
       <button class="btn" id="btn-enviar" onclick="enviar()">Registrar presencia</button>
     </div>
 
-    <!-- ÉXITO -->
     <div class="ok-view" id="ok-view">
       <div class="ok-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="#3a7d1e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -279,9 +274,8 @@
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzwvVIpahkZxtFAKpMVUv07H3p1LAd2lrPUhCdoFmO_G_5TpkVQClpqu-ZiKK4AiSOy/exec';
+const API = 'https://santuario-api.vercel.app';
 
-// Poblar horas
 const horaEl = document.getElementById('hora');
 for (let h = 6; h <= 22; h++) {
   const op = document.createElement('option');
@@ -290,7 +284,6 @@ for (let h = 6; h <= 22; h++) {
   horaEl.appendChild(op);
 }
 
-// Preseleccionar hora actual + 1h redondeada al cuarto
 const now = new Date();
 const plus1 = new Date(now.getTime() + 60 * 60 * 1000);
 const ph = plus1.getHours();
@@ -319,9 +312,7 @@ function enviar() {
   btn.disabled = true;
   btn.textContent = 'Registrando...';
 
-  const url = API + '?action=registrar&hora_salida=' + encodeURIComponent(horaSalida);
-
-  fetch(url)
+  fetch(API + '?action=registrar&hora_salida=' + encodeURIComponent(horaSalida))
     .then(r => r.json())
     .then(data => {
       if (data.ok) {
