@@ -67,7 +67,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzwvVIpahkZxtFAKpMVUv07H3p1LAd2lrPUhCdoFmO_G_5TpkVQClpqu-ZiKK4AiSOy/exec';
+const API = 'https://santuario-api.vercel.app';
 const DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
 let semanaActual = getLunesDeHoy();
@@ -151,26 +151,23 @@ function selTodo(val) {
   renderFranjas();
 }
 
-function jsonpGet(url, cb) {
-  const name = '_cb' + Date.now() + Math.floor(Math.random()*1000);
-  window[name] = function(data) { cb(data); delete window[name]; };
-  const s = document.createElement('script');
-  s.src = url + '&callback=' + name + '&t=' + Date.now();
-  s.onerror = () => cb({ ok: false, error: 'Error de red' });
-  document.head.appendChild(s);
-}
-
 function cargarSchedule() {
   document.getElementById('semana-label').textContent = labelSemana(semanaActual);
   document.getElementById('franjas').innerHTML = '<p class="loading-msg">Cargando...</p>';
-  jsonpGet(API + '?action=getSchedule&semana=' + semanaActual, function(data) {
-    if (data.ok) {
-      grilla = {};
-      for (let d = 0; d <= 6; d++) grilla[d] = data.grilla[d] || {};
-    }
-    renderTabs();
-    renderFranjas();
-  });
+
+  fetch(API + '?action=getSchedule&semana=' + semanaActual + '&t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        grilla = {};
+        for (let d = 0; d <= 6; d++) grilla[d] = data.grilla[d] || {};
+      }
+      renderTabs();
+      renderFranjas();
+    })
+    .catch(() => {
+      document.getElementById('franjas').innerHTML = '<p class="loading-msg">Error al cargar.</p>';
+    });
 }
 
 function soloActivas() {
@@ -183,7 +180,7 @@ function soloActivas() {
   return activas;
 }
 
-function guardar(propagar) {
+async function guardar(propagar) {
   const btnSolo = document.getElementById('btn-solo');
   const btnProp = document.getElementById('btn-propagar');
   btnSolo.disabled = true;
@@ -202,27 +199,28 @@ function guardar(propagar) {
     }
   }
 
-  let pendientes = semanas.length;
   let errores = 0;
-
-  semanas.forEach(sem => {
-    jsonpGet(API + '?action=saveSchedule&semana=' + sem +
-      '&grilla=' + encodeURIComponent(JSON.stringify(activas)), function(data) {
+  for (const sem of semanas) {
+    try {
+      const res = await fetch(API + '?action=saveSchedule&semana=' + sem +
+        '&grilla=' + encodeURIComponent(JSON.stringify(activas)));
+      const data = await res.json();
       if (!data.ok) errores++;
-      pendientes--;
-      if (pendientes === 0) {
-        btnSolo.disabled = false;
-        btnProp.disabled = false;
-        btnSolo.textContent = 'Modificar esta semana';
-        btnProp.textContent = 'Modificar esta semana y las 24 siguientes';
-        if (errores === 0) {
-          mostrarToast(propagar ? '✓ 25 semanas guardadas' : '✓ Semana guardada');
-        } else {
-          mostrarToast('⚠ ' + errores + ' semana(s) con error');
-        }
-      }
-    });
-  });
+    } catch {
+      errores++;
+    }
+  }
+
+  btnSolo.disabled = false;
+  btnProp.disabled = false;
+  btnSolo.textContent = 'Modificar esta semana';
+  btnProp.textContent = 'Modificar esta semana y las 24 siguientes';
+
+  if (errores === 0) {
+    mostrarToast(propagar ? '✓ 25 semanas guardadas' : '✓ Semana guardada');
+  } else {
+    mostrarToast('⚠ ' + errores + ' semana(s) con error');
+  }
 }
 
 function mostrarToast(msg) {
