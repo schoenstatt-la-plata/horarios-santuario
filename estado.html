@@ -16,9 +16,11 @@
   .estado-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 100px; font-size: 15px; font-weight: 600; font-family: Arial, sans-serif; letter-spacing: 0.5px; margin-bottom: 20px; }
   .estado-badge.abierto { background: #eaf7ed; color: #1a6e2e; border: 1.5px solid #a3d9af; }
   .estado-badge.cerrado { background: #f7eaea; color: #6e1a1a; border: 1.5px solid #d9a3a3; }
+  .estado-badge.en-horario { background: #fff8e1; color: #7a5c00; border: 1.5px solid #f5c400; }
   .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .dot.verde { background: #2ecc71; animation: pulse 2s ease-in-out infinite; }
   .dot.rojo { background: #c0392b; }
+  .dot.amarillo { background: #f5c400; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(0.85);} }
   .hora-cierre { font-size: 52px; font-weight: 700; color: #1a1a6e; letter-spacing: -1px; margin-bottom: 6px; font-family: Arial, sans-serif; }
   .hora-label { font-size: 14px; color: #999; margin-bottom: 4px; font-style: italic; }
@@ -70,6 +72,9 @@
 const API = 'https://santuario-api.vercel.app';
 const DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
+// Grilla semanal cacheada para poder consultarla al renderizar el estado
+let grillaCache = null;
+
 function horaActual() {
   return new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 }
@@ -85,15 +90,40 @@ function getLunesDeHoy() {
   return y+'-'+m+'-'+d;
 }
 
+// Devuelve true si el momento actual cae dentro de alguna franja de la grilla de hoy
+function estaEnHorarioHabitual(grilla) {
+  if (!grilla) return false;
+  const ahora = new Date();
+  const diaHoy = ahora.getDay();
+  const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const franjas = Object.keys(grilla[diaHoy] || {}).filter(f => grilla[diaHoy][f]);
+  if (franjas.length === 0) return false;
+
+  // Cada franja representa un bloque de 15 min que comienza en ese horario.
+  // Consideramos que el Santuario "debería estar abierto" si ahora mismo
+  // se encuentra dentro del rango de alguna franja activa.
+  return franjas.some(f => {
+    const [h, m] = f.split(':').map(Number);
+    const inicio = h * 60 + m;
+    const fin = inicio + 15; // cada slot cubre 15 minutos
+    return minutosAhora >= inicio && minutosAhora < fin;
+  });
+}
+
 function renderAbierto(horaCierre) {
   return `<div class="estado-badge abierto"><div class="dot verde"></div>Abierto ahora, la Mater te espera</div>
     <div class="hora-cierre">${horaCierre} hs.</div>
     <p class="hora-label">hora estimada de cierre</p>`;
 }
 
+function renderSinCustodioEnHorario() {
+  return `<div class="estado-badge en-horario"><div class="dot amarillo"></div>Sin custodio confirmado</div>
+    <p class="cerrado-msg">Este momento es un horario habitual en el que el Santuario se encuentra abierto.</p>`;
+}
+
 function renderCerrado() {
   return `<div class="estado-badge cerrado"><div class="dot rojo"></div>Cerrado</div>
-    <p class="cerrado-msg">El santuario no tiene<br>custodios presentes en este momento.</p>`;
+    <p class="cerrado-msg">El Santuario no tiene<br>custodios presentes en este momento.</p>`;
 }
 
 function agruparBloques(franjas) {
@@ -164,26 +194,45 @@ function renderScheduleSemanal(grilla) {
   div2.style.display = hayAlgo ? 'block' : 'none';
 }
 
+function renderEstado(data) {
+  const area = document.getElementById('status-area');
+  if (data.abierto && data.horaCierre) {
+    area.innerHTML = renderAbierto(data.horaCierre);
+  } else if (estaEnHorarioHabitual(grillaCache)) {
+    area.innerHTML = renderSinCustodioEnHorario();
+  } else {
+    area.innerHTML = renderCerrado();
+  }
+  document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
+}
+
 function cargar() {
   const lunes = getLunesDeHoy();
 
-  fetch(API + '?action=estado&t=' + Date.now())
+  // Cargamos primero la grilla para que esté disponible al renderizar el estado
+  const promiseGrilla = fetch(API + '?action=getSchedule&semana=' + lunes + '&t=' + Date.now())
     .then(r => r.json())
     .then(data => {
-      const area = document.getElementById('status-area');
-      area.innerHTML = (data.abierto && data.horaCierre) ? renderAbierto(data.horaCierre) : renderCerrado();
-      document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
-    })
-    .catch(() => {
-      document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
-    });
-
-  fetch(API + '?action=getSchedule&semana=' + lunes + '&t=' + Date.now())
-    .then(r => r.json())
-    .then(data => {
-      if (data.ok) renderScheduleSemanal(data.grilla);
+      if (data.ok) {
+        grillaCache = data.grilla;
+        renderScheduleSemanal(data.grilla);
+      }
     })
     .catch(() => {});
+
+  const promiseEstado = fetch(API + '?action=estado&t=' + Date.now())
+    .then(r => r.json())
+    .catch(() => null);
+
+  // Esperamos ambas respuestas para poder cruzar la información
+  Promise.all([promiseGrilla, promiseEstado])
+    .then(([, estadoData]) => {
+      if (estadoData) {
+        renderEstado(estadoData);
+      } else {
+        document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
+      }
+    });
 }
 
 cargar();
