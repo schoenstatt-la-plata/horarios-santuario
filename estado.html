@@ -78,7 +78,7 @@
   <div class="divider"></div>
 
   <div class="schedule-section" id="schedule-section" style="display:none">
-    <p class="schedule-titulo">Horarios semanales del Santuario abierto</p>
+    <p class="schedule-titulo">Horarios semanales</p>
     <div id="schedule-dias"></div>
   </div>
 
@@ -147,7 +147,7 @@ function renderMisas(franjas) {
 
   // Texto: "HOY MISA 19:00 h." o "HOY MISA 09:00 - 19:00 h."
   const horarios = visibles.join(' - ');
-  cartel.textContent = 'Hoy Misa ' + horarios + ' h.';
+  cartel.textContent = 'HOY MISA ' + horarios + ' h.';
   sec.classList.add('visible');
 }
 
@@ -302,6 +302,51 @@ function renderEstado(data) {
   document.getElementById('actualizado').textContent = 'Actualizado a las ' + horaActual() + ' · Se actualiza cada 2 min';
 }
 
+const STATS_URL = 'https://script.google.com/macros/s/AKfycby-MCRgi1o-CM4oHPnFoA7sN3_9whgoWB7hZD_hzn3-x80MvfoDwMwAhtrX5UvU_N_izA/exec';
+const DIAS_NOMBRE = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+async function registrarVisita(hayMisa, santuarioAbierto) {
+  try {
+    const ahora = new Date();
+    const fecha = ahora.toLocaleDateString('es-AR');
+    const hora  = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    const diaSemana = DIAS_NOMBRE[ahora.getDay()];
+
+    let lat = '', lon = '', ciudad = '';
+
+    // Intentar geolocalización silenciosa (usa caché si ya fue concedida)
+    if (navigator.geolocation) {
+      await new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          pos => { lat = pos.coords.latitude; lon = pos.coords.longitude; resolve(); },
+          () => resolve(),
+          { timeout: 4000, maximumAge: 300000 }
+        );
+      });
+    }
+
+    if (lat && lon) {
+      try {
+        const g = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+        const gd = await g.json();
+        ciudad = gd.address?.city || gd.address?.town || gd.address?.village || '';
+      } catch {}
+    }
+
+    await fetch(STATS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: 'visita_estado',
+        fecha, hora, diaSemana,
+        hayMisa, santuarioAbierto,
+        ciudad, lat, lon
+      })
+    });
+  } catch {}
+}
+
 function cargar() {
   const lunes = getLunesDeHoy();
 
@@ -323,6 +368,13 @@ function cargar() {
     .then(([, estadoData]) => {
       if (estadoData) {
         renderEstado(estadoData);
+        // Registrar visita solo en la primera carga (no en los refresh de 2 min)
+        if (!window._visitaRegistrada) {
+          window._visitaRegistrada = true;
+          const abierto = estadoData.abierto && !!estadoData.horaCierre;
+          const hayMisa = document.getElementById('misa-section').classList.contains('visible');
+          registrarVisita(hayMisa, abierto);
+        }
       } else {
         document.getElementById('status-area').innerHTML = '<p class="loading">No se pudo obtener el estado.</p>';
       }
