@@ -424,13 +424,25 @@ function cargarMensual() {
 }
 
 async function guardarMensual(propagar) {
+  if (diasMesSel.size === 0) {
+    mostrarToast('Seleccioná al menos un día del mes');
+    return;
+  }
+
   const b1 = document.getElementById('btn-men-solo');
   const b2 = document.getElementById('btn-men-propaga');
   b1.disabled = b2.disabled = true;
   b1.textContent = propagar ? 'Modificar este mes' : 'Guardando...';
   b2.textContent = propagar ? 'Guardando 6 meses...' : 'Modificar este mes y los 5 siguientes';
 
-  const activas = soloActivasMensual();
+  // Solo los días seleccionados con sus franjas activas
+  const soloSeleccionados = {};
+  diasMesSel.forEach(d => {
+    soloSeleccionados[d] = {};
+    const franjas = grillaMensual[d] || {};
+    for (const f in franjas) { if (franjas[f]) soloSeleccionados[d][f] = true; }
+  });
+
   const meses = [getMesStr(0)];
   if (propagar) {
     for (let i = 1; i <= 5; i++) meses.push(getMesStr(i));
@@ -438,17 +450,33 @@ async function guardarMensual(propagar) {
 
   let errores = 0;
   for (const mesStr of meses) {
-    // Para cada mes, filtrar días que no existen
     const [anio, mesNum] = mesStr.split('-').map(Number);
     const maxDias = diasEnMes(anio, mesNum - 1);
-    const activasFiltradas = {};
+
+    // Primero traer la grilla actual del mes para no pisarla entera
+    let grilaExistente = {};
+    try {
+      const r = await fetch(API + '?action=getMisasMensual&mes=' + mesStr + '&t=' + Date.now());
+      const d = await r.json();
+      if (d.ok && d.grilla) grilaExistente = d.grilla;
+    } catch {}
+
+    // Combinar: grilla existente + cambios de los días seleccionados
+    const activasFinal = {};
     for (let d = 1; d <= 31; d++) {
-      if (d > maxDias) continue; // omitir días que no existen en ese mes
-      activasFiltradas[d] = activas[d] || {};
+      if (d > maxDias) continue;
+      if (diasMesSel.has(d)) {
+        // Día seleccionado: usar los nuevos horarios (omitir si no existe en este mes)
+        activasFinal[d] = soloSeleccionados[d] || {};
+      } else {
+        // Día no seleccionado: preservar lo que había grabado
+        activasFinal[d] = grilaExistente[d] || {};
+      }
     }
+
     try {
       const res = await fetch(API + '?action=saveMisasMensual&mes=' + mesStr +
-        '&grilla=' + encodeURIComponent(JSON.stringify(activasFiltradas)));
+        '&grilla=' + encodeURIComponent(JSON.stringify(activasFinal)));
       const data = await res.json();
       if (!data.ok) errores++;
     } catch { errores++; }
