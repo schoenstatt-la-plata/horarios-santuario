@@ -30,23 +30,16 @@
   /* HOY MISA */
   .misa-section { padding: 0 28px 20px; display: none; }
   .misa-section.visible { display: block; }
-  .misa-titulo { font-size: 12px; font-weight: 700; color: #1a1a6e; font-family: Arial, sans-serif; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-  .misa-pills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .misa-pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: #fff8e1; border: 1.5px solid #f5c400;
-    border-radius: 100px; padding: 5px 14px;
-    font-family: Arial, sans-serif; font-size: 13px;
-    font-weight: 700; color: #7a5c00;
-  }
-  .misa-pill.en-curso {
-    background: #fff3cd; border-color: #f5c400;
-    color: #5a4000;
-  }
-  .misa-pill .misa-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #f5c400; flex-shrink: 0;
-    animation: pulse 2s ease-in-out infinite;
+  .misa-cartel {
+    background: #1a1a6e;
+    border-radius: 16px;
+    padding: 14px 20px;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #f5c400;
+    letter-spacing: 0.3px;
   }
 
   .schedule-section { padding: 0 28px 24px; }
@@ -79,8 +72,7 @@
   <!-- HOY MISA — aparece solo si hay misa hoy -->
   <div class="misa-section" id="misa-section">
     <div class="divider" style="margin: 0 0 16px;"></div>
-    <p class="misa-titulo">✝ Hoy Misa</p>
-    <div class="misa-pills" id="misa-pills"></div>
+    <div class="misa-cartel" id="misa-cartel"></div>
   </div>
 
   <div class="divider"></div>
@@ -131,22 +123,21 @@ function getDiaHoy() {
 // ── HOY MISA ──────────────────────────────────────────────
 // Muestra misas del día desde 0:00 hasta 59 min después del inicio
 function renderMisas(franjas) {
-  const sec   = document.getElementById('misa-section');
-  const pills = document.getElementById('misa-pills');
+  const sec    = document.getElementById('misa-section');
+  const cartel = document.getElementById('misa-cartel');
 
   if (!franjas || franjas.length === 0) {
     sec.classList.remove('visible');
     return;
   }
 
-  const ahora   = new Date();
-  const minNow  = ahora.getHours() * 60 + ahora.getMinutes();
+  const ahora  = new Date();
+  const minNow = ahora.getHours() * 60 + ahora.getMinutes();
 
-  // Filtrar: desde 0:00 del día hasta 59 min después del inicio
+  // Mostrar desde 0:00 del día hasta 59 min después del inicio de la última misa
   const visibles = franjas.filter(f => {
     const [h, m] = f.split(':').map(Number);
-    const minMisa = h * 60 + m;
-    return minNow <= minMisa + 59; // mostrar hasta 59 min después de comenzada
+    return minNow <= h * 60 + m + 59;
   });
 
   if (visibles.length === 0) {
@@ -154,20 +145,9 @@ function renderMisas(franjas) {
     return;
   }
 
-  pills.innerHTML = '';
-  visibles.forEach(f => {
-    const [h, m] = f.split(':').map(Number);
-    const minMisa = h * 60 + m;
-    const enCurso = minNow >= minMisa && minNow <= minMisa + 59;
-
-    const pill = document.createElement('span');
-    pill.className = 'misa-pill' + (enCurso ? ' en-curso' : '');
-    pill.innerHTML = enCurso
-      ? `<span class="misa-dot"></span>${f} hs.`
-      : `${f} hs.`;
-    pills.appendChild(pill);
-  });
-
+  // Texto: "HOY MISA 19:00 h." o "HOY MISA 09:00 - 19:00 h."
+  const horarios = visibles.join(' - ');
+  cartel.textContent = 'HOY MISA ' + horarios + ' h.';
   sec.classList.add('visible');
 }
 
