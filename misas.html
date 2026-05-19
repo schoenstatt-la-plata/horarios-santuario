@@ -137,7 +137,8 @@ let diaSemanalSel = new Date().getDay();
 let grillaSemanal = {};   // { 0..6: { 'HH:MM': true/false } }
 for (let d = 0; d <= 6; d++) grillaSemanal[d] = {};
 
-let diaMesSel = 1;        // 1..31
+let diaMesSel = null;       // null = ninguno preseleccionado
+let diasMesSel = new Set(); // selección múltiple
 let grillaMensual = {};   // { 1..31: { 'HH:MM': true/false } }
 for (let d = 1; d <= 31; d++) grillaMensual[d] = {};
 
@@ -197,8 +198,9 @@ function cambiarSemana(dir) {
   d.setDate(d.getDate() + dir * 7);
   semanaActual = formatFecha(d);
   document.getElementById('semana-label').textContent = labelSemana(semanaActual);
+  diasMesSel = new Set(); // resetear selección de días al cambiar mes
   cargarSemanal();
-  renderDiasMes(); // actualiza días válidos del mes
+  renderDiasMes();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -319,13 +321,18 @@ function renderDiasMes() {
   for (let d = 1; d <= 31; d++) {
     const div = document.createElement('div');
     const invalido = d > maxDias;
-    div.className = 'dia-mes' + (d === diaMesSel ? ' seleccionado' : '') + (invalido ? '' : '');
+    const seleccionado = diasMesSel.has(d);
+    div.className = 'dia-mes' + (seleccionado ? ' seleccionado' : '');
     div.textContent = d;
     div.style.opacity = invalido ? '0.25' : '1';
     div.style.cursor  = invalido ? 'default' : 'pointer';
     div.onclick = () => {
       if (invalido) return;
-      diaMesSel = d;
+      if (diasMesSel.has(d)) {
+        diasMesSel.delete(d);
+      } else {
+        diasMesSel.add(d);
+      }
       renderDiasMes();
       renderFranjasMensual();
     };
@@ -336,24 +343,37 @@ function renderDiasMes() {
 function renderFranjasMensual() {
   const cont = document.getElementById('franjas-mensual');
   cont.innerHTML = '';
+
+  if (diasMesSel.size === 0) {
+    cont.innerHTML = '<p class="loading-msg">Seleccioná uno o más días del mes</p>';
+    return;
+  }
+
+  // Mostrar franjas: ON si está activa en TODOS los días seleccionados
   generarFranjas().forEach(f => {
     const div = document.createElement('div');
-    const on = grillaMensual[diaMesSel] && grillaMensual[diaMesSel][f];
-    div.className = 'franja' + (on ? ' on' : '');
+    const todosOn = [...diasMesSel].every(d => grillaMensual[d] && grillaMensual[d][f]);
+    div.className = 'franja' + (todosOn ? ' on' : '');
     div.textContent = f;
     div.onclick = () => {
-      if (!grillaMensual[diaMesSel]) grillaMensual[diaMesSel] = {};
-      grillaMensual[diaMesSel][f] = !grillaMensual[diaMesSel][f];
-      div.classList.toggle('on', grillaMensual[diaMesSel][f]);
+      const nuevoVal = !todosOn;
+      diasMesSel.forEach(d => {
+        if (!grillaMensual[d]) grillaMensual[d] = {};
+        grillaMensual[d][f] = nuevoVal;
+      });
+      renderFranjasMensual();
     };
     cont.appendChild(div);
   });
 }
 
 function selTodoMensual(val) {
+  if (diasMesSel.size === 0) return;
   generarFranjas().forEach(f => {
-    if (!grillaMensual[diaMesSel]) grillaMensual[diaMesSel] = {};
-    grillaMensual[diaMesSel][f] = val;
+    diasMesSel.forEach(d => {
+      if (!grillaMensual[d]) grillaMensual[d] = {};
+      grillaMensual[d][f] = val;
+    });
   });
   renderFranjasMensual();
 }
