@@ -198,9 +198,8 @@ function cambiarSemana(dir) {
   d.setDate(d.getDate() + dir * 7);
   semanaActual = formatFecha(d);
   document.getElementById('semana-label').textContent = labelSemana(semanaActual);
-  diasMesSel = new Set(); // resetear selección de días al cambiar mes
   cargarSemanal();
-  renderDiasMes();
+  cargarMensual(); // carga los datos grabados del mes correspondiente
 }
 
 // ══════════════════════════════════════════════════════════
@@ -405,11 +404,20 @@ function cargarMensual() {
         grillaMensual = {};
         for (let d = 1; d <= 31; d++) grillaMensual[d] = data.grilla[d] || {};
       }
+      // Filtrar días seleccionados que ya no son válidos en el nuevo mes
+      const anio = getAnioActual();
+      const mes  = getMesActual();
+      const maxDias = diasEnMes(anio, mes);
+      diasMesSel.forEach(d => { if (d > maxDias) diasMesSel.delete(d); });
       renderDiasMes();
       renderFranjasMensual();
     })
     .catch(() => {
       for (let d = 1; d <= 31; d++) grillaMensual[d] = {};
+      const anio = getAnioActual();
+      const mes  = getMesActual();
+      const maxDias = diasEnMes(anio, mes);
+      diasMesSel.forEach(d => { if (d > maxDias) diasMesSel.delete(d); });
       renderDiasMes();
       renderFranjasMensual();
     });
