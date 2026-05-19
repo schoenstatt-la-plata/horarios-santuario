@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Horarios de Misas</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #0e0e4a; min-height: 100vh; padding: 1rem; }
+
+  .top { background: #1a1a6e; border-radius: 16px; padding: 20px 20px 16px; text-align: center; margin-bottom: 16px; }
+  .top h1 { color: #f5c400; font-size: 17px; margin-bottom: 4px; }
+  .top p  { color: rgba(245,196,0,0.6); font-size: 12px; font-style: italic; }
+
+  .semana-nav { display: flex; align-items: center; justify-content: center; gap: 12px; background: #fff; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; }
+  .semana-nav button { background: #1a1a6e; color: #f5c400; border: none; border-radius: 8px; width: 36px; height: 36px; font-size: 18px; cursor: pointer; }
+  .semana-label { font-size: 14px; font-weight: 600; color: #1a1a6e; min-width: 180px; text-align: center; }
+
+  /* Section titles */
+  .seccion-titulo {
+    color: #f5c400;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  /* Tabs */
+  .dias-tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .dia-tab { flex-shrink: 0; background: rgba(255,255,255,0.15); color: #fff; border: none; border-radius: 10px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+  .dia-tab.activo { background: #f5c400; color: #1a1a6e; font-weight: 700; }
+
+  /* Grilla */
+  .grilla-wrap { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .grilla-titulo { font-size: 13px; color: #888; margin-bottom: 12px; font-style: italic; }
+  .seleccionar-todo { display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 8px; }
+  .btn-sel { font-size: 12px; padding: 4px 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #555; cursor: pointer; }
+
+  /* Franjas :00 y :30 — 2 columnas */
+  .franjas-misas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .franja { border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 8px 4px; text-align: center; font-size: 13px; font-weight: 600; color: #aaa; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .franja.on { background: #eaf7ed; border-color: #a3d9af; color: #1a6e2e; }
+
+  /* Días del mes */
+  .dias-mes { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; }
+  .dia-mes { border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 8px 4px; text-align: center; font-size: 13px; font-weight: 700; color: #aaa; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .dia-mes.on { background: #e8f0fe; border-color: #7aadff; color: #1a1a6e; }
+  .dia-mes.seleccionado { background: #1a1a6e; border-color: #1a1a6e; color: #f5c400; }
+
+  /* Acciones */
+  .acciones { display: flex; gap: 10px; margin-bottom: 20px; }
+  .btn-accion { flex: 1; padding: 15px 10px; border: none; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; line-height: 1.3; }
+  .btn-accion.primario { background: #1a1a6e; color: #f5c400; }
+  .btn-accion.secundario { background: #f5c400; color: #1a1a6e; }
+  .btn-accion:disabled { opacity: 0.5; cursor: default; }
+
+  .loading-msg { text-align: center; color: #aaa; font-size: 13px; padding: 20px 0; font-style: italic; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1a6e2e; color: #fff; padding: 12px 24px; border-radius: 100px; font-size: 14px; transition: transform 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .separador { height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Panel de administración</h1>
+  <p>Horarios de Misas</p>
+</div>
+
+<!-- Navegador de semana (compartido) -->
+<div class="semana-nav">
+  <button onclick="cambiarSemana(-1)">‹</button>
+  <div class="semana-label" id="semana-label">Cargando...</div>
+  <button onclick="cambiarSemana(1)">›</button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  BLOQUE 1: MISAS SEMANALES             -->
+<!-- ═══════════════════════════════════════ -->
+<p class="seccion-titulo">📅 Misas semanales</p>
+
+<div class="dias-tabs" id="dias-tabs-semanal"></div>
+
+<div class="grilla-wrap">
+  <div class="seleccionar-todo">
+    <button class="btn-sel" onclick="selTodoSemanal(true)">Todo el día ✓</button>
+    <button class="btn-sel" onclick="selTodoSemanal(false)">Limpiar ✗</button>
+  </div>
+  <p class="grilla-titulo">Tocá cada horario para marcarlo con misa</p>
+  <div class="franjas-misas" id="franjas-semanal">
+    <p class="loading-msg">Cargando...</p>
+  </div>
+</div>
+
+<div class="acciones">
+  <button class="btn-accion secundario" id="btn-sem-solo"    onclick="guardarSemanal(false)">Modificar esta semana</button>
+  <button class="btn-accion primario"   id="btn-sem-propaga" onclick="guardarSemanal(true)">Modificar esta semana y las 24 siguientes</button>
+</div>
+
+<div class="separador"></div>
+
+<!-- ═══════════════════════════════════════ -->
+<!--  BLOQUE 2: MISAS MENSUALES             -->
+<!-- ═══════════════════════════════════════ -->
+<p class="seccion-titulo">🗓 Misas mensuales</p>
+
+<div class="grilla-wrap">
+  <p class="grilla-titulo">Elegí el día del mes y luego marcá los horarios</p>
+  <div class="dias-mes" id="dias-mes"></div>
+  <div class="seleccionar-todo">
+    <button class="btn-sel" onclick="selTodoMensual(true)">Todo el día ✓</button>
+    <button class="btn-sel" onclick="selTodoMensual(false)">Limpiar ✗</button>
+  </div>
+  <div class="franjas-misas" id="franjas-mensual">
+    <p class="loading-msg">Seleccioná un día del mes</p>
+  </div>
+</div>
+
+<div class="acciones">
+  <button class="btn-accion secundario" id="btn-men-solo"    onclick="guardarMensual(false)">Modificar este mes</button>
+  <button class="btn-accion primario"   id="btn-men-propaga" onclick="guardarMensual(true)">Modificar este mes y los 5 siguientes</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://santuario-api.vercel.app';
+const DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+// ── Estado global ──────────────────────────────────────────
+let semanaActual = getLunesDeHoy();
+let diaSemanalSel = new Date().getDay();
+let grillaSemanal = {};   // { 0..6: { 'HH:MM': true/false } }
+for (let d = 0; d <= 6; d++) grillaSemanal[d] = {};
+
+let diaMesSel = 1;        // 1..31
+let grillaMensual = {};   // { 1..31: { 'HH:MM': true/false } }
+for (let d = 1; d <= 31; d++) grillaMensual[d] = {};
+
+// ── Helpers de fecha ───────────────────────────────────────
+function getLunesDeHoy() {
+  const hoy = new Date();
+  const dia = hoy.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
+  hoy.setDate(hoy.getDate() + diff);
+  return formatFecha(hoy);
+}
+
+function formatFecha(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function parseFecha(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function labelSemana(lunes) {
+  const d = parseFecha(lunes);
+  const fin = new Date(d); fin.setDate(fin.getDate() + 6);
+  const opts = { day: 'numeric', month: 'short' };
+  return d.toLocaleDateString('es-AR', opts) + ' – ' + fin.toLocaleDateString('es-AR', opts);
+}
+
+function getMesActual() {
+  // Mes del lunes de la semana actual (0-indexed)
+  return parseFecha(semanaActual).getMonth();
+}
+function getAnioActual() {
+  return parseFecha(semanaActual).getFullYear();
+}
+
+// Días válidos en un mes dado
+function diasEnMes(anio, mes) {
+  return new Date(anio, mes + 1, 0).getDate();
+}
+
+// ── Franjas: solo :00 y :30 ────────────────────────────────
+function generarFranjas() {
+  const f = [];
+  for (let h = 0; h < 24; h++) {
+    f.push(String(h).padStart(2, '0') + ':00');
+    f.push(String(h).padStart(2, '0') + ':30');
+  }
+  return f;
+}
+
+// ── Semana nav ─────────────────────────────────────────────
+function cambiarSemana(dir) {
+  const d = parseFecha(semanaActual);
+  d.setDate(d.getDate() + dir * 7);
+  semanaActual = formatFecha(d);
+  document.getElementById('semana-label').textContent = labelSemana(semanaActual);
+  cargarSemanal();
+  renderDiasMes(); // actualiza días válidos del mes
+}
+
+// ══════════════════════════════════════════════════════════
+//  BLOQUE SEMANAL
+// ══════════════════════════════════════════════════════════
+function renderTabsSemanal() {
+  const cont = document.getElementById('dias-tabs-semanal');
+  cont.innerHTML = '';
+  DIAS_CORTO.forEach((nombre, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'dia-tab' + (i === diaSemanalSel ? ' activo' : '');
+    btn.textContent = nombre;
+    btn.onclick = () => { diaSemanalSel = i; renderTabsSemanal(); renderFranjasSemanal(); };
+    cont.appendChild(btn);
+  });
+}
+
+function renderFranjasSemanal() {
+  const cont = document.getElementById('franjas-semanal');
+  cont.innerHTML = '';
+  generarFranjas().forEach(f => {
+    const div = document.createElement('div');
+    const on = grillaSemanal[diaSemanalSel] && grillaSemanal[diaSemanalSel][f];
+    div.className = 'franja' + (on ? ' on' : '');
+    div.textContent = f;
+    div.onclick = () => {
+      if (!grillaSemanal[diaSemanalSel]) grillaSemanal[diaSemanalSel] = {};
+      grillaSemanal[diaSemanalSel][f] = !grillaSemanal[diaSemanalSel][f];
+      div.classList.toggle('on', grillaSemanal[diaSemanalSel][f]);
+    };
+    cont.appendChild(div);
+  });
+}
+
+function selTodoSemanal(val) {
+  generarFranjas().forEach(f => {
+    if (!grillaSemanal[diaSemanalSel]) grillaSemanal[diaSemanalSel] = {};
+    grillaSemanal[diaSemanalSel][f] = val;
+  });
+  renderFranjasSemanal();
+}
+
+function soloActivasSemanal() {
+  const activas = {};
+  for (let d = 0; d <= 6; d++) {
+    activas[d] = {};
+    const dia = grillaSemanal[d] || {};
+    for (const f in dia) { if (dia[f]) activas[d][f] = true; }
+  }
+  return activas;
+}
+
+function cargarSemanal() {
+  document.getElementById('franjas-semanal').innerHTML = '<p class="loading-msg">Cargando...</p>';
+  fetch(API + '?action=getMisasSemanal&semana=' + semanaActual + '&t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && data.grilla) {
+        grillaSemanal = {};
+        for (let d = 0; d <= 6; d++) grillaSemanal[d] = data.grilla[d] || {};
+      }
+      renderTabsSemanal();
+      renderFranjasSemanal();
+    })
+    .catch(() => {
+      // Si la API no tiene el endpoint aún, inicia vacío
+      for (let d = 0; d <= 6; d++) grillaSemanal[d] = {};
+      renderTabsSemanal();
+      renderFranjasSemanal();
+    });
+}
+
+async function guardarSemanal(propagar) {
+  const b1 = document.getElementById('btn-sem-solo');
+  const b2 = document.getElementById('btn-sem-propaga');
+  b1.disabled = b2.disabled = true;
+  b2.textContent = propagar ? 'Guardando 25 semanas...' : 'Modificar esta semana y las 24 siguientes';
+  b1.textContent = propagar ? 'Modificar esta semana' : 'Guardando...';
+
+  const activas = soloActivasSemanal();
+  const semanas = [semanaActual];
+  if (propagar) {
+    for (let i = 1; i <= 24; i++) {
+      const d = parseFecha(semanaActual);
+      d.setDate(d.getDate() + i * 7);
+      semanas.push(formatFecha(d));
+    }
+  }
+
+  let errores = 0;
+  for (const sem of semanas) {
+    try {
+      const res = await fetch(API + '?action=saveMisasSemanal&semana=' + sem +
+        '&grilla=' + encodeURIComponent(JSON.stringify(activas)));
+      const data = await res.json();
+      if (!data.ok) errores++;
+    } catch { errores++; }
+  }
+
+  b1.disabled = b2.disabled = false;
+  b1.textContent = 'Modificar esta semana';
+  b2.textContent = 'Modificar esta semana y las 24 siguientes';
+  mostrarToast(errores === 0
+    ? (propagar ? '✓ 25 semanas guardadas' : '✓ Semana guardada')
+    : '⚠ ' + errores + ' semana(s) con error');
+}
+
+// ══════════════════════════════════════════════════════════
+//  BLOQUE MENSUAL
+// ══════════════════════════════════════════════════════════
+function renderDiasMes() {
+  const cont = document.getElementById('dias-mes');
+  cont.innerHTML = '';
+  const anio = getAnioActual();
+  const mes  = getMesActual();
+  const maxDias = diasEnMes(anio, mes);
+
+  for (let d = 1; d <= 31; d++) {
+    const div = document.createElement('div');
+    const invalido = d > maxDias;
+    div.className = 'dia-mes' + (d === diaMesSel ? ' seleccionado' : '') + (invalido ? '' : '');
+    div.textContent = d;
+    div.style.opacity = invalido ? '0.25' : '1';
+    div.style.cursor  = invalido ? 'default' : 'pointer';
+    div.onclick = () => {
+      if (invalido) return;
+      diaMesSel = d;
+      renderDiasMes();
+      renderFranjasMensual();
+    };
+    cont.appendChild(div);
+  }
+}
+
+function renderFranjasMensual() {
+  const cont = document.getElementById('franjas-mensual');
+  cont.innerHTML = '';
+  generarFranjas().forEach(f => {
+    const div = document.createElement('div');
+    const on = grillaMensual[diaMesSel] && grillaMensual[diaMesSel][f];
+    div.className = 'franja' + (on ? ' on' : '');
+    div.textContent = f;
+    div.onclick = () => {
+      if (!grillaMensual[diaMesSel]) grillaMensual[diaMesSel] = {};
+      grillaMensual[diaMesSel][f] = !grillaMensual[diaMesSel][f];
+      div.classList.toggle('on', grillaMensual[diaMesSel][f]);
+    };
+    cont.appendChild(div);
+  });
+}
+
+function selTodoMensual(val) {
+  generarFranjas().forEach(f => {
+    if (!grillaMensual[diaMesSel]) grillaMensual[diaMesSel] = {};
+    grillaMensual[diaMesSel][f] = val;
+  });
+  renderFranjasMensual();
+}
+
+function soloActivasMensual() {
+  const activas = {};
+  for (let d = 1; d <= 31; d++) {
+    activas[d] = {};
+    const dia = grillaMensual[d] || {};
+    for (const f in dia) { if (dia[f]) activas[d][f] = true; }
+  }
+  return activas;
+}
+
+// Formato aaaa-mm para un mes relativo al actual
+function getMesStr(offsetMeses) {
+  const anio = getAnioActual();
+  const mes  = getMesActual();
+  const d = new Date(anio, mes + offsetMeses, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function cargarMensual() {
+  const mesStr = getMesStr(0);
+  fetch(API + '?action=getMisasMensual&mes=' + mesStr + '&t=' + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && data.grilla) {
+        grillaMensual = {};
+        for (let d = 1; d <= 31; d++) grillaMensual[d] = data.grilla[d] || {};
+      }
+      renderDiasMes();
+      renderFranjasMensual();
+    })
+    .catch(() => {
+      for (let d = 1; d <= 31; d++) grillaMensual[d] = {};
+      renderDiasMes();
+      renderFranjasMensual();
+    });
+}
+
+async function guardarMensual(propagar) {
+  const b1 = document.getElementById('btn-men-solo');
+  const b2 = document.getElementById('btn-men-propaga');
+  b1.disabled = b2.disabled = true;
+  b1.textContent = propagar ? 'Modificar este mes' : 'Guardando...';
+  b2.textContent = propagar ? 'Guardando 6 meses...' : 'Modificar este mes y los 5 siguientes';
+
+  const activas = soloActivasMensual();
+  const meses = [getMesStr(0)];
+  if (propagar) {
+    for (let i = 1; i <= 5; i++) meses.push(getMesStr(i));
+  }
+
+  let errores = 0;
+  for (const mesStr of meses) {
+    // Para cada mes, filtrar días que no existen
+    const [anio, mesNum] = mesStr.split('-').map(Number);
+    const maxDias = diasEnMes(anio, mesNum - 1);
+    const activasFiltradas = {};
+    for (let d = 1; d <= 31; d++) {
+      if (d > maxDias) continue; // omitir días que no existen en ese mes
+      activasFiltradas[d] = activas[d] || {};
+    }
+    try {
+      const res = await fetch(API + '?action=saveMisasMensual&mes=' + mesStr +
+        '&grilla=' + encodeURIComponent(JSON.stringify(activasFiltradas)));
+      const data = await res.json();
+      if (!data.ok) errores++;
+    } catch { errores++; }
+  }
+
+  b1.disabled = b2.disabled = false;
+  b1.textContent = 'Modificar este mes';
+  b2.textContent = 'Modificar este mes y los 5 siguientes';
+  mostrarToast(errores === 0
+    ? (propagar ? '✓ 6 meses guardados' : '✓ Mes guardado')
+    : '⚠ ' + errores + ' mes(es) con error');
+}
+
+// ── Toast ──────────────────────────────────────────────────
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Init ───────────────────────────────────────────────────
+document.getElementById('semana-label').textContent = labelSemana(semanaActual);
+cargarSemanal();
+cargarMensual();
+</script>
+</body>
+</html>
