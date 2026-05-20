@@ -264,7 +264,7 @@
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <p class="ok-title">Presencia registrada</p>
+      <p class="ok-title">Horario registrado</p>
       <p class="ok-msg" id="ok-msg"></p>
       <button class="btn-sec" onclick="modificar()">Modificar horario</button>
       <a href="estado.html" style="display:block;width:100%;margin-top:10px;padding:13px;background:#1a1a6e;color:#f5c400;border-radius:12px;font-size:14px;font-family:Georgia,serif;font-weight:600;text-align:center;text-decoration:none;">Ver publicación</a>
@@ -284,7 +284,7 @@ for (let h = 6; h <= 22; h++) {
   horaEl.appendChild(op);
 }
 
-// Calcular hora actual + 2 horas (en lugar de + 1 hora)
+// Hora actual + 2 horas
 const now = new Date();
 const plus2 = new Date(now.getTime() + 2 * 60 * 60 * 1000);
 const ph = plus2.getHours();
@@ -304,6 +304,9 @@ function ocultarError() {
   document.getElementById('error-msg').style.display = 'none';
 }
 
+// Detecta si ya hay un registro hoy para usar modificarSanteria en lugar de registrarSanteria
+let modoModificar = false;
+
 function enviar() {
   ocultarError();
   const h = document.getElementById('hora').value;
@@ -313,12 +316,15 @@ function enviar() {
   btn.disabled = true;
   btn.textContent = 'Registrando...';
 
-  fetch(API + '?action=registrar&hora_salida=' + encodeURIComponent(horaSalida))
+  const accion = modoModificar ? 'modificarSanteria' : 'registrarSanteria';
+
+  fetch(API + '?action=' + accion + '&hora_salida=' + encodeURIComponent(horaSalida))
     .then(r => r.json())
     .then(data => {
       if (data.ok) {
+        modoModificar = true;
         document.getElementById('ok-msg').textContent =
-          'El santuario figura como abierto hasta las ' + horaSalida + ' hs. ¡Gracias por tu servicio!';
+          'La santería figura como abierta hasta las ' + horaSalida + ' hs. ¡Gracias!';
         document.getElementById('form-view').style.display = 'none';
         document.getElementById('ok-view').style.display = 'block';
       } else {
@@ -335,6 +341,8 @@ function enviar() {
 function modificar() {
   document.getElementById('ok-view').style.display = 'none';
   document.getElementById('form-view').style.display = 'block';
+  // Al volver al formulario ya sabemos que hay un registro, usamos modificar
+  modoModificar = true;
 }
 </script>
 </body>
