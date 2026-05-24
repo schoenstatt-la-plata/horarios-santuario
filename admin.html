@@ -125,7 +125,7 @@ async function activarNotificaciones() {
 
 async function registrarToken() {
   try {
-    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const swReg = await navigator.serviceWorker.register('/horarios-santuario/firebase-messaging-sw.js');
     const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
     if (token) {
       // Guardar token en Google Apps Script para que el trigger lo use
